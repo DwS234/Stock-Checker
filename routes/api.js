@@ -15,7 +15,7 @@ var axios = require('axios');
 
 var Stock = require('../models/Stock');
 
-const CONNECTION_STRING = process.env.DB; //MongoClient.connect(CONNECTION_STRING, function(err, db) {});
+const CONNECTION_STRING = process.env.NODE_ENV === 'test' ? process.env.TEST_DB : process.env.DB;//MongoClient.connect(CONNECTION_STRING, function(err, db) {});
 mongoose.connect(CONNECTION_STRING, err => {
   if (err)
     console.log("Could'nt connect to db: " + err);
@@ -58,7 +58,9 @@ module.exports = function (app) {
                   return reject("Didn't found stock with name: " + stock[i]);
   
                 var today = formatDate(new Date());
-  
+
+                if(!response.data['Time Series (Daily)'])
+                  return reject("Problem with external API");
                 var stockPrice = response.data["Time Series (Daily)"][today] ? response.data["Time Series (Daily)"][today]["1. open"] : null;
   
                 if (!stockPrice)
@@ -107,9 +109,6 @@ module.exports = function (app) {
                 || req.connection.remoteAddress 
                 || req.socket.remoteAddress 
                 || req.connection.socket.remoteAddress;
-
-                request_ip = 'fsdfsdf';
-                
 
                 let canGiveLike = true;
                 if(foundStock.who_liked !== null && foundStock.who_liked.length > 0) {
